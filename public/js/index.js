@@ -6488,9 +6488,59 @@ var Home = function Home() {
     return function updateStudent(_x2) {
       return _ref2.apply(this, arguments);
     };
-  }();
+  }(); //delete student
 
-  var deleteStudent = function deleteStudent() {}; //looping the fetched students info
+
+  var deleteStudent = /*#__PURE__*/function () {
+    var _ref3 = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3(e, id) {
+      var currenTargetButton, swalWithBootstrapButtons;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              currenTargetButton = e.currentTarget;
+              swalWithBootstrapButtons = sweetalert2__WEBPACK_IMPORTED_MODULE_3___default().mixin({
+                customClass: {
+                  confirmButton: 'btn btn-success',
+                  cancelButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
+              });
+              swalWithBootstrapButtons.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No, cancel!',
+                reverseButtons: true
+              }).then(function (result) {
+                if (result.isConfirmed) {
+                  axios["delete"]('/api/student/delete/' + id).then(function (response) {
+                    currenTargetButton.closest('tr').remove();
+                  })["catch"](function (error) {
+                    console.log(error);
+                  });
+                  swalWithBootstrapButtons.fire('Deleted!', 'Student Info Deleted Successfully.', 'success');
+                } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === (sweetalert2__WEBPACK_IMPORTED_MODULE_3___default().DismissReason.cancel)) {
+                  swalWithBootstrapButtons.fire('Cancelled', 'Your imaginary file is safe )', 'error');
+                }
+              });
+
+            case 3:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, _callee3);
+    }));
+
+    return function deleteStudent(_x3, _x4) {
+      return _ref3.apply(this, arguments);
+    };
+  }(); //looping the fetched students info
 
 
   var studentData = students.map(function (student) {
