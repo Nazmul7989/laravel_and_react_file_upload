@@ -1,6 +1,7 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import {Modal} from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css'
+import Swal from 'sweetalert2'
 
 const Home = () => {
 
@@ -14,6 +15,7 @@ const Home = () => {
     const [addNew,setAddNew] = useState(true)
 
     //add new student info
+    const [id,setId] = useState();
     const [name,setName] = useState("");
     const [age,setAge] = useState("");
     const [classname,setClassname] = useState("");
@@ -26,6 +28,7 @@ const Home = () => {
     const addStudent = ()=>{
         setModalShow(true)
         setAddNew(true)
+        setId()
         setName("")
         setAge("")
         setClassname("")
@@ -37,6 +40,7 @@ const Home = () => {
     const closBtnHandler = ()=>{
 
         setModalShow(false)
+        setId()
         setName("")
         setAge("")
         setClassname("")
@@ -50,7 +54,8 @@ const Home = () => {
         setImage(e.target.files[0])
     }
 
-    const saveStudent = async ()=>{
+    const saveStudent = async (e)=>{
+        e.preventDefault();
 
         let formData = new FormData();
 
@@ -63,8 +68,7 @@ const Home = () => {
 
         if (res.data.status === 200){
 
-            console.log(res.data)
-            // getStudents();
+            getStudents();
 
             setModalShow(false)
 
@@ -85,28 +89,126 @@ const Home = () => {
                 title: 'Student Info Added successfully'
             })
 
+            setId()
             setName("")
             setAge("")
             setClassname("")
             setImage()
             setError([]);
 
-
-
         }else {
 
-            setError({
-                error_list: res.data.validation_error
-            });
+            setError(res.data.validation_error);
 
         }
 
     }
 
-    const updateStudent = ()=>{
+    //set data from fetched student info
+    const [students,setStudents] = useState([]);
+
+    //fetch all student info
+    const getStudents = ()=>{
+        axios.get('/api/student').then((response)=>{
+            let studentsData = response.data.students;
+            setStudents(studentsData);
+
+        }).catch((error)=>{
+            console.log(error);
+        })
+    }
+
+    //fetch data when component mount
+    useEffect(()=>{
+        getStudents();
+    },[])
+
+
+    //edit student info
+    const editStudent = (student)=>{
+        setModalShow(true)
+        setAddNew(false);
+
+        setId(student.id)
+        setName(student.name)
+        setAge(student.age)
+        setClassname(student.class)
+        setImage(student.image)
+        setError([]);
+    }
+
+    //update student
+    const updateStudent = async (e)=>{
+        e.preventDefault();
+
+        let formData = new FormData();
+
+        formData.append('name',name);
+        formData.append('age',age);
+        formData.append('class',classname);
+        formData.append('image',image);
+
+        const res = await axios.put('/api/student/update/'+ id,formData);
+
+        if (res.data.status === 200){
+
+            getStudents();
+            setModalShow(false)
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+
+            await Toast.fire( {
+                icon: 'success',
+                title: 'Student Info Updated successfully'
+            })
+
+
+            setId()
+            setName("")
+            setAge("")
+            setClassname("")
+            setImage()
+            setError([]);
+
+        }else {
+
+            setError(res.data.validation_error);
+
+        }
 
     }
 
+    const deleteStudent = ()=>{
+
+    }
+
+
+    //looping the fetched students info
+    const studentData = students.map((student)=>{
+        return <tr key={student.id}>
+            <td>{student.id}</td>
+            <td>
+                <img src={student.image} style={{width: '120px',height: '80px'}} alt="Image"/>
+            </td>
+            <td>{student.name}</td>
+            <td>{student.age}</td>
+            <td>{student.class }</td>
+            <td>
+                <button onClick={(e)=>editStudent(student,e)} className="btn btn-success btn-sm ms">Edit</button>
+                <button onClick={(e)=>deleteStudent(e,student.id)}  className="btn btn-danger btn-sm ms-2">Delete</button>
+            </td>
+        </tr>
+    });
 
 
 
@@ -135,19 +237,7 @@ const Home = () => {
                           </tr>
                           </thead>
                           <tbody>
-                          <tr>
-                              <td>01</td>
-                              <td>
-                                  <img src="" style={{width: '120px',height: '80px'}} alt="Image"/>
-                              </td>
-                              <td>Nazmul</td>
-                              <td>28</td>
-                              <td>MBA</td>
-                              <td>
-                                  <button onClick={(e)=>editStudent(student,e)} className="btn btn-success btn-sm ms">Edit</button>
-                                  <button onClick={(e)=>deleteStudent(e,student.id)}  className="btn btn-danger btn-sm ms-2">Delete</button>
-                              </td>
-                          </tr>
+                          {studentData}
                           </tbody>
                       </table>
 
@@ -175,22 +265,30 @@ const Home = () => {
                                   </div>
                                   <div className="col-12">
                                       <div className="form-group mb-3">
-                                          <input type="text" name="age" id="age" value={age} onChange={(e)=>{setName(e.target.value)}}    className="form-control" placeholder="Your Age"/>
+                                          <input type="text" name="age" id="age" value={age} onChange={(e)=>{setAge(e.target.value)}}    className="form-control" placeholder="Your Age"/>
                                           <span className="text-danger">{error.age}</span>
                                       </div>
                                   </div>
                                   <div className="col-12">
                                       <div className="form-group mb-3">
-                                          <input type="text" name="class" id="class" value={classname} onChange={(e)=>{setName(e.target.value)}}   className="form-control" placeholder="Your Class"/>
+                                          <input type="text" name="class" id="class" value={classname} onChange={(e)=>{setClassname(e.target.value)}}   className="form-control" placeholder="Your Class"/>
                                           <span className="text-danger">{error.class}</span>
                                       </div>
                                   </div>
 
                                   <div className="col-12">
-                                      <div className="form-group mb-3">
-                                          <input type="file" name="image" id="image"  onChange={imageHandler}   className="form-control" />
-                                          <span className="text-danger">{error.image}</span>
+                                      <div className="row">
+                                          <div className="col-9">
+                                              <div className="form-group mb-3">
+                                                  <input type="file" name="image" id="image"  onChange={imageHandler}   className="form-control" />
+                                                  <span className="text-danger">{error.image}</span>
+                                              </div>
+                                          </div>
+                                          <div className="col-3 text-end">
+                                              <img src={image} style={{width: '80px',height:'60px', marginTop:'-10px'}} alt="Image"/>
+                                          </div>
                                       </div>
+
                                   </div>
 
                               </div>
