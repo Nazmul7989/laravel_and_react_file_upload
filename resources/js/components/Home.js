@@ -2,6 +2,7 @@ import React, {Fragment, useEffect, useState} from 'react';
 import {Modal} from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Swal from 'sweetalert2'
+import 'sweetalert2/src/sweetalert2.scss'
 import Loading from "./Loading";
 
 const Home = () => {
@@ -23,7 +24,6 @@ const Home = () => {
     const [image,setImage] = useState();
     const [previewImage,setPreviewImage] = useState();
     const [loading,setLoading] = useState(true);
-
 
     //validation error
     const [error,setError] = useState([])
@@ -92,11 +92,6 @@ const Home = () => {
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
             })
 
             await Toast.fire( {
@@ -130,7 +125,7 @@ const Home = () => {
         })
     }
 
-    //fetch data when component mount
+    //fetch data when component load
     useEffect(()=>{
         getStudents();
     },[])
@@ -156,16 +151,15 @@ const Home = () => {
 
         let formData = new FormData();
 
+        formData.append('id',id);
         formData.append('name',name);
         formData.append('age',age);
         formData.append('class',classname);
         formData.append('image',image);
 
-        const res = await axios.put('/api/student/update/'+ id,formData);
+        const res = await axios.post('/api/student/update/'+ id,formData);
 
         if (res.data.status === 200){
-
-            console.log(res.data)
 
             getStudents();
             setModalShow(false)
@@ -175,11 +169,6 @@ const Home = () => {
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
             })
 
             await Toast.fire( {
@@ -216,13 +205,13 @@ const Home = () => {
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'No, cancel!',
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
 
-                axios.delete('/api/student/delete/'+id).then((response)=>{
+                axios.delete('/api/student/delete/'+id).then(()=>{
 
                     currenTargetButton.closest('tr').remove();
 
@@ -279,11 +268,10 @@ const Home = () => {
                     <div className="row d-flex justify-content-center">
 
                         <div className="col-8">
+
                             <div className="clearfix mb-3">
                                 <h4 className="float-start">Students Information</h4>
-
                                 <button onClick={addStudent} className="float-end btn btn-sm btn-success">Add new</button>
-
                             </div>
 
                             <table className="table table-bordered">
@@ -315,7 +303,7 @@ const Home = () => {
 
                             <Modal.Body>
 
-                                <form method="post">
+                                <form method="post" encType="multipart/form-data">
                                     <div className="row">
 
                                         <div className="col-12">
@@ -324,12 +312,14 @@ const Home = () => {
                                                 <span className="text-danger">{error.name}</span>
                                             </div>
                                         </div>
+
                                         <div className="col-12">
                                             <div className="form-group mb-3">
                                                 <input type="text" name="age" id="age" value={age} onChange={(e)=>{setAge(e.target.value)}}    className="form-control" placeholder="Your Age"/>
                                                 <span className="text-danger">{error.age}</span>
                                             </div>
                                         </div>
+
                                         <div className="col-12">
                                             <div className="form-group mb-3">
                                                 <input type="text" name="class" id="class" value={classname} onChange={(e)=>{setClassname(e.target.value)}}   className="form-control" placeholder="Your Class"/>
@@ -349,7 +339,6 @@ const Home = () => {
                                                     <img src={previewImage} style={{width: '80px',height:'55px', marginTop:'-10px'}} alt="Preview"/>
                                                 </div>
                                             </div>
-
                                         </div>
 
                                     </div>
@@ -365,15 +354,13 @@ const Home = () => {
                                                 Update
                                             </button>
                                         )}
-
                                     </Modal.Footer>
 
                                 </form>
+
                             </Modal.Body>
 
-
                         </Modal>
-
 
                     </div>
                 </div>

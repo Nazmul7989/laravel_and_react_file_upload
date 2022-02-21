@@ -29,7 +29,7 @@ class StudentController extends Controller
             'name' => 'required',
             'age' => 'required',
             'class' => 'required',
-//            'image' => 'required|image',
+            'image' => 'required|image',
         ]);
 
         if ($validator->fails()) {
